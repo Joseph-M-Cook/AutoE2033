@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import InvalidElementStateException
+from selenium.common.exceptions import NoSuchElementException
 
 from bs4 import BeautifulSoup
 import time
@@ -54,7 +55,6 @@ def input_campaign_statement(campaign_statement):
     textarea.send_keys(campaign_statement)
     return True
 
-
 # Function to check if button is clickable by XPATH
 def is_button_clickable(xpath):
     try:
@@ -67,9 +67,10 @@ def is_button_clickable(xpath):
 def start_challenge(campaign_statement):
     challenge = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, challenge_xp )))
     
-    # Click 'Challenge; Button
+    # Click 'Challenge' Button
     challenge.click()
 
+    time.sleep(1)
     # Check if challenge start failed
     if is_button_clickable(challenge_xp):
         print("Challenge Start FAILED. Retrying...")
@@ -116,6 +117,14 @@ def E2033(campaign_statement):
     except TimeoutException:
         print("Challenge Ready.")
 
+    #myELO = 
+    #compELO = 
+
+    #if myELO <= compELO:
+        #driver.refresh()
+        #E2033(campaign_statement)
+
+
     if input_campaign_statement(campaign_statement):
         start_challenge(campaign_statement)
         print("Challenge Started.")
@@ -123,21 +132,34 @@ def E2033(campaign_statement):
     # Wait until victory is over
     WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, play_again_xp)))
     print("Match Over.")
-    
-    Feedback = collect_feedback()
 
-    return Feedback
+    try:
+        driver.find_element(By.XPATH, '//h1[@class="mt-6 text-4xl sm:text-6xl font-medium text-mediumRed text-center"]')
+        print("LOSS")
+        Feedback = collect_feedback()
+        return Feedback
+    except NoSuchElementException:
+        print("VICTORY")
+        time.sleep(2)
+        return None
+
 
 # Function to rebuild campaign statement based on feedback
 def Rebuild_Campaign(Feedback, campaign_statement):
+    # Check if current campaing statement is winning
+    if Feedback is None:
+        Feedback = E2033(campaign_statement)
+        Rebuild_Campaign(Feedback, campaign_statement)
+
     print("Generating Re-Engineered Campaign Statement...")
 
+    # System Role Prompt
     system_role = "In the future, only five voters count.\n"
     system_role += "Unleash your most captivating, Tweet-sized campaign statement to sway their minds.\n"
     system_role += "Adapt to their feedback and climb the ranks towards power.\n"
     system_role += "Do you have what it takes to be president for 2033?\n"
     system_role += "Your job is to improve the current campaign statement based on their feedback.\n"
-    system_role += "You only have 250 characters, so use your words wisely."
+    system_role += "You only have 200 characters, so use your words wisely."
     system_role += "Do not use hashtags or emojis."
 
     completion = openai.ChatCompletion.create(
