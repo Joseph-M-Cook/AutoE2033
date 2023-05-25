@@ -137,7 +137,8 @@ def Rebuild_Campaign(Feedback, campaign_statement):
     system_role += "Adapt to their feedback and climb the ranks towards power.\n"
     system_role += "Do you have what it takes to be president for 2033?\n"
     system_role += "Your job is to improve the current campaign statement based on their feedback.\n"
-    system_role += "Do not use hashtags or emojis. Keep your response around 280 chars."
+    system_role += "You only have 250 characters, so use your words wisely."
+    system_role += "Do not use hashtags or emojis."
 
     completion = openai.ChatCompletion.create(
         model="gpt-4",
@@ -159,7 +160,8 @@ def Rebuild_Campaign(Feedback, campaign_statement):
         print(new_campaign_statement)
         Feedback = E2033(new_campaign_statement)
         Rebuild_Campaign(Feedback, new_campaign_statement)
-        
+
+# Main      
 if __name__ == "__main__":
     campaign_statement = "Lets save humanity by ridding poverty, hunger, and abuse by integrating creative "
     campaign_statement += "and fun education in all communities, ultimately connecting people back together. "
