@@ -17,7 +17,7 @@ openai.api_key = ""
 
 # XPATHs
 challenge_xp = '//*[@id="__next"]/div/div[1]/div/div[2]/main/div/div/div[3]/div/button'
-start_election_xp = '//*[@id="__next"]/div/div[1]/div/div[2]/main/div/div/div[4]/div/button'
+starting_election_xp = '//*[@id="__next"]/div/div[1]/div/div[2]/main/div/div/div[4]/div/button'
 play_again_xp = '//*[contains(@id, "headlessui-dialog-panel-:r")]/div/div[5]/button'
 
 # Function to set up global driver instance
@@ -35,6 +35,12 @@ driver = set_up_driver()
 
 # Function to input campaign statement
 def input_campaign_statement(campaign_statement):
+    if is_button_clickable(starting_election_xp):
+        starting_election = driver.find_element(By.XPATH, starting_election_xp)
+        print("Re-Clicking to Start Challenge")
+        starting_election.click()
+        return False
+    
     time.sleep(3)
     textarea = driver.find_element(By.ID, "comment")
     time.sleep(.5)
@@ -46,6 +52,7 @@ def input_campaign_statement(campaign_statement):
     time.sleep(.5)
     print("Campaign Statement Sent to Input.")
     textarea.send_keys(campaign_statement)
+    return True
 
 
 # Function to check if button is clickable by XPATH
@@ -109,10 +116,9 @@ def E2033(campaign_statement):
     except TimeoutException:
         print("Challenge Ready.")
 
-    input_campaign_statement(campaign_statement)
-
-    start_challenge(campaign_statement)
-    print("Challenge Started.")
+    if input_campaign_statement(campaign_statement):
+        start_challenge(campaign_statement)
+        print("Challenge Started.")
 
     # Wait until victory is over
     WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, play_again_xp)))
@@ -122,37 +128,37 @@ def E2033(campaign_statement):
 
     return Feedback
 
-
+# Function to rebuild campaign statement based on feedback
 def Rebuild_Campaign(Feedback, campaign_statement):
     print("Generating Re-Engineered Campaign Statement...")
 
     system_role = "In the future, only five voters count.\n"
     system_role += "Unleash your most captivating, Tweet-sized campaign statement to sway their minds.\n"
     system_role += "Adapt to their feedback and climb the ranks towards power.\n"
-    system_role += "Do you have what it takes to be president?\n"
+    system_role += "Do you have what it takes to be president for 2033?\n"
     system_role += "Your job is to improve the current campaign statement based on their feedback.\n"
-    system_role += "You are working on @Joseph_M_Cook_'s campaign."
-    system_role += "Do not use hashtags."
+    system_role += "Do not use hashtags or emojis. Keep your response around 280 chars."
 
     completion = openai.ChatCompletion.create(
         model="gpt-4",
 
         messages=[
-                    {"role": "system", "content": system_role},
-                    {"role": "user", "content": f"Current Campaign Statement: {campaign_statement}"},
-                    {"role": "user", "content": f"Feeback: {Feedback} New Campaign Statement:"}
+                  {"role": "system", "content": system_role},
+                  {"role": "user", "content": f"Current Campaign Statement: {campaign_statement}"},
+                  {"role": "user", "content": f"Feeback: {Feedback} New Campaign Statement:"}
                  ], 
 
-        )['choices'][0]['message']['content'].strip()
-    
-    if 150 < len(completion) > 280:
-        print(f"ERROR Length of completion: {len(completion)}")
-        print(completion)
+        )
+    new_campaign_statement = completion['choices'][0]['message']['content'].strip()
+
+    if 150 < len(new_campaign_statement) > 280:
+        print(f"ERROR Length of completion: {len(new_campaign_statement)}")
+        print(new_campaign_statement)
         Rebuild_Campaign(Feedback, campaign_statement)
     else:
-        print(completion)
-        Feedback = E2033(completion)
-        Rebuild_Campaign(Feedback, campaign_statement)
+        print(new_campaign_statement)
+        Feedback = E2033(new_campaign_statement)
+        Rebuild_Campaign(Feedback, new_campaign_statement)
         
 if __name__ == "__main__":
     campaign_statement = "Lets save humanity by ridding poverty, hunger, and abuse by integrating creative "
