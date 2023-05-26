@@ -15,12 +15,15 @@ pip install -r requirements.txt
 ```
 3. Set up OpenAI API key
 - `openai.api_key = "YOUR_OPENAI_API_KEY"`
-
-## Usage
-The script can be run by executing python main.py, where main.py is the name of the script containing the provided code.
-
+4. Start Chrome in debug mode
+- See: https://learn-automation.com/how-to-execute-selenium-scripts-on-already-opened-browser/
+5. Execute the main script
+```
 python AutoE2033.py
-
+```
+## Note
+For more information on Election2033:
+https://twitter.com/election2033
 
 
 ## Contributions
